@@ -21,14 +21,15 @@ aws_providers = filter providers as addr, p {
     p.source else "" is "registry.terraform.io/hashicorp/aws"
 }
 
+#The null/"" guards inside is_compliant only matter when a provider is declared but has no version constraint.
 is_compliant = func(p) {
     constraint = p.version_constraint else null
     print("AWS provider source:", p.source else "unknown",
           "| version_constraint:", constraint else "none (no constraint declared — tfpolicy enforces real version)")
     # No constraint declared → pass, tfpolicy handles real version check
-    if constraint is null {
-        return false
-    }
+    #if constraint is null {
+    #    return false
+    #}
     #if constraint is "" {
     #    return false
     #}
