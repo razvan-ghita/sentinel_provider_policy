@@ -21,33 +21,26 @@ aws_providers = filter providers as addr, p {
     p.source else "" is "registry.terraform.io/hashicorp/aws"
 }
 
-is_gte_5 = func(constraint) {
-    return strings.has_prefix(constraint, "~> 5") or
-           strings.has_prefix(constraint, ">= 5")
-}
-
-is_lt_6 = func(constraint) {
-    # ~> 5.x is implicitly < 6.0 — safe
+is_compliant = func(p) {
+    constraint = p.version_constraint else null
+    print("AWS provider source:", p.source else "unknown",
+          "| version_constraint:", constraint else "none (no constraint declared — tfpolicy enforces real version)")
+    # No constraint declared → pass, tfpolicy handles real version check
+    if constraint is null {
+        return true
+    }
+    # Constraint declared — must be >= 5 and < 6
     if strings.has_prefix(constraint, "~> 5") {
         return true
     }
-    # Explicit < 6.0.0 or < 6 present in the constraint string
-    if strings.contains(constraint, "< 6") {
+    if strings.has_prefix(constraint, ">= 5") and strings.contains(constraint, "< 6") {
         return true
     }
     return false
 }
 
-# Pull constraint per provider for use in print and rule
-get_constraint = func(p) {
-    return p.version_constraint else "none (no constraint declared — tfpolicy enforces real version)"
-}
-
 main = rule {
     all aws_providers as _, p {
-        print("AWS provider source:", p.source else "unknown",
-              "| version_constraint:", get_constraint(p))
-        # No constraint declared → pass, tfpolicy handles real version check
-        rule { p.version_constraint is null or (is_gte_5(p.version_constraint else "") and is_lt_6(p.version_constraint else "")) }
+        is_compliant(p)
     }
 }
