@@ -29,6 +29,9 @@ is_compliant = func(p) {
     #if constraint is null {
     #    return true
     #}
+    if constraint is "" {
+        return false
+    }
     # Constraint declared — must be >= 5 and < 6
     if strings.has_prefix(constraint, "~> 5") {
         return true
