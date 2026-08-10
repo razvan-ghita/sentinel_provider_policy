@@ -1,5 +1,6 @@
 import "tfconfig/v2"
 import "strings"
+import "version"
 
 # Get all provider configs from the Terraform configuration
 providers = tfconfig.providers
@@ -12,9 +13,34 @@ aws_providers = filter providers as addr, p {
 # The version_constraint is the constraint string e.g. "~> 5.0"
 # Sentinel cannot see the *resolved* version — only the constraint string
 # declared in required_providers. This is a fundamental limitation vs tfpolicy.
+#
+# Best-effort check: verify the constraint string is not empty and does not
+# allow versions below 5.0.0 or 6.0.0 and above.
+# ⚠️ This is string-based — a developer can bypass it by omitting the constraint
+#    or writing a constraint Sentinel's string matching doesn't catch.
+#    Use tfpolicy provider_policy for reliable resolved-version enforcement.
+
+is_gte_5 = func(constraint) {
+    return strings.has_prefix(constraint, "~> 5") or
+           strings.has_prefix(constraint, ">= 5")
+}
+
+is_lt_6 = func(constraint) {
+    # ~> 5.x is implicitly < 6.0 — safe
+    if strings.has_prefix(constraint, "~> 5") {
+        return true
+    }
+    # Explicit < 6.0.0 or < 6 present in the constraint string
+    if strings.contains(constraint, "< 6") {
+        return true
+    }
+    return false
+}
+
 main = rule {
     all aws_providers as _, p {
         p.version_constraint is not null and
-        strings.has_prefix(p.version_constraint, "~> 5")
+        is_gte_5(p.version_constraint) and
+        is_lt_6(p.version_constraint)
     }
 }
