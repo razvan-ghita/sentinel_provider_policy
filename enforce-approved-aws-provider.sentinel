@@ -38,17 +38,21 @@ is_lt_6 = func(constraint) {
     return false
 }
 
+# Pull constraint per provider for use in print and rule
+get_constraint = func(p) {
+    return p.version_constraint else "none (no constraint declared — tfpolicy enforces real version)"
+}
+
 main = rule {
     all aws_providers as _, p {
-        constraint = p.version_constraint else null
         print("AWS provider source:", p.source else "unknown",
-              "| version_constraint:", constraint else "none (no constraint declared — tfpolicy enforces real version)")
+              "| version_constraint:", get_constraint(p))
 
         # No constraint declared → pass, tfpolicy handles real version check
-        constraint is null or
+        p.version_constraint is null or
         (
-            is_gte_5(constraint) and
-            is_lt_6(constraint)
+            is_gte_5(p.version_constraint) and
+            is_lt_6(p.version_constraint)
         )
     }
 }
