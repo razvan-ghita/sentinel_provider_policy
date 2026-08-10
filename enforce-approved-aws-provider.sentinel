@@ -1,13 +1,14 @@
 import "tfconfig/v2"
 import "strings"
-import "version"
 
 # Get all provider configs from the Terraform configuration
 providers = tfconfig.providers
 
-# Find the AWS provider entry
+# Match on the full source address — tfconfig/v2 stores providers under the
+# fully qualified registry path "registry.terraform.io/hashicorp/aws", not
+# the short alias "aws". Matching on p.source is more reliable than addr.
 aws_providers = filter providers as addr, p {
-    strings.has_prefix(addr, "aws")
+    p.source is "registry.terraform.io/hashicorp/aws"
 }
 
 # The version_constraint is the constraint string e.g. "~> 5.0"
