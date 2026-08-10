@@ -1,0 +1,20 @@
+import "tfconfig/v2"
+import "strings"
+
+# Get all provider configs from the Terraform configuration
+providers = tfconfig.providers
+
+# Find the AWS provider entry
+aws_providers = filter providers as addr, p {
+    strings.has_prefix(addr, "aws")
+}
+
+# The version_constraint is the constraint string e.g. "~> 5.0"
+# Sentinel cannot see the *resolved* version — only the constraint string
+# declared in required_providers. This is a fundamental limitation vs tfpolicy.
+main = rule {
+    all aws_providers as _, p {
+        p.version_constraint is not null and
+        strings.has_prefix(p.version_constraint, "~> 5")
+    }
+}
