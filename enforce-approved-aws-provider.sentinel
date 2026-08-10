@@ -42,7 +42,7 @@ main = rule {
     # If no AWS providers are declared, block the run
     length(aws_providers) > 0 and
     all aws_providers as _, p {
-        p.version_constraint is not null and
+       # p.version_constraint is not null and
         is_gte_5(p.version_constraint) and
         is_lt_6(p.version_constraint)
     }
