@@ -45,7 +45,7 @@ is_compliant = func(p) {
 
 main = rule {
     # Block if no AWS provider declared at all
-    #length(aws_providers) > 0 and
+    length(aws_providers) > 0 and
     all aws_providers as _, p {
         is_compliant(p)
     }
