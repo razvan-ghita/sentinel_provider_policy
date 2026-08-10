@@ -1,3 +1,3 @@
-policy "no-provider-under-v5" {
+policy "enforce-approved-aws-provider" {
   enforcement_level = "hard-mandatory"
 }
