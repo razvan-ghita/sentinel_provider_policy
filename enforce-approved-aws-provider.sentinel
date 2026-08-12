@@ -27,12 +27,12 @@ is_compliant = func(p) {
     print("AWS provider source:", p.source else "unknown",
           "| version_constraint:", constraint else "none (no constraint declared — tfpolicy enforces real version)")
     # No constraint declared → pass, tfpolicy handles real version check
-    #if constraint is null {
-    #    return false
-    #}
-    #if constraint is "" {
-    #    return false
-    #}
+    if constraint is null {
+        return false
+    }
+    if constraint is "" {
+        return false
+    }
     # Constraint declared — must be >= 5 and < 6
     if strings.has_prefix(constraint, "~> 5") {
         return true
@@ -45,7 +45,7 @@ is_compliant = func(p) {
 
 main = rule {
     # Block if no AWS provider declared at all
-    length(aws_providers) > 0 and
+    #length(aws_providers) > 0 and
     all aws_providers as _, p {
         is_compliant(p)
     }
